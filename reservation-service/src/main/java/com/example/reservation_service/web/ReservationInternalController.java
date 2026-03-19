@@ -1,6 +1,7 @@
 package com.example.reservation_service.web;
 
 import com.example.reservation_service.service.ReservationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/reservations/internal")
+@Tag(name = "Réservations (interne)", description = "API utilisée par le room-service pour détecter les conflits")
 public class ReservationInternalController {
 
 	private final ReservationService reservationService;

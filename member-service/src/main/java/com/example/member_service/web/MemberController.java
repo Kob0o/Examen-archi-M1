@@ -2,6 +2,7 @@ package com.example.member_service.web;
 
 import com.example.member_service.model.Member;
 import com.example.member_service.service.MemberService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/members")
+@Tag(name = "Membres", description = "Gestion des membres et abonnements")
 public class MemberController {
 
 	private final MemberService memberService;

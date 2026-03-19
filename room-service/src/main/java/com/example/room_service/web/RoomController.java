@@ -2,6 +2,7 @@ package com.example.room_service.web;
 
 import com.example.room_service.model.Room;
 import com.example.room_service.service.RoomService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rooms")
+@Tag(name = "Salles", description = "Gestion des salles de coworking")
 public class RoomController {
 
 	private final RoomService roomService;

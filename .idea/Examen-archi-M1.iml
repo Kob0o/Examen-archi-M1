@@ -102,5 +102,6 @@
     <orderEntry type="library" name="Maven: org.springframework.kafka:spring-kafka:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.20.2" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.20.2" level="project" />
+    <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-annotations-jakarta:2.2.43" level="project" />
   </component>
 </module>

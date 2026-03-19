@@ -2,6 +2,7 @@ package com.example.reservation_service.web;
 
 import com.example.reservation_service.model.Reservation;
 import com.example.reservation_service.service.ReservationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservations")
+@Tag(name = "Réservations", description = "Création, annulation et complétion des réservations")
 public class ReservationController {
 
 	private final ReservationService reservationService;
