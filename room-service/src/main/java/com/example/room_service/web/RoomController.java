@@ -55,9 +55,6 @@ public class RoomController {
 		roomService.delete(id);
 	}
 
-	/**
-	 * Utilisé par le reservation-service (énoncé : vérifier la disponibilité via Room Service).
-	 */
 	@GetMapping("/{id}/slot-available")
 	public boolean slotAvailable(
 			@PathVariable Long id,

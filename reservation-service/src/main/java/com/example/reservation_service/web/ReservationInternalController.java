@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 
-/**
- * API interne pour le room-service (détection de conflit de créneaux).
- */
+
 @RestController
 @RequestMapping("/api/reservations/internal")
 public class ReservationInternalController {

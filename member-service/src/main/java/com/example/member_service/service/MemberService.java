@@ -1,5 +1,6 @@
 package com.example.member_service.service;
 
+import com.example.member_service.messaging.MemberDeletedKafkaProducer;
 import com.example.member_service.model.Member;
 import com.example.member_service.model.SubscriptionType;
 import com.example.member_service.repository.MemberRepository;
@@ -12,9 +13,11 @@ import java.util.List;
 public class MemberService {
 
 	private final MemberRepository memberRepository;
+	private final MemberDeletedKafkaProducer memberDeletedKafkaProducer;
 
-	public MemberService(MemberRepository memberRepository) {
+	public MemberService(MemberRepository memberRepository, MemberDeletedKafkaProducer memberDeletedKafkaProducer) {
 		this.memberRepository = memberRepository;
+		this.memberDeletedKafkaProducer = memberDeletedKafkaProducer;
 	}
 
 	public List<Member> findAll() {
@@ -54,6 +57,7 @@ public class MemberService {
 			throw new NotFoundException("Membre introuvable: " + id);
 		}
 		memberRepository.deleteById(id);
+		memberDeletedKafkaProducer.publish(id);
 	}
 
 	@Transactional

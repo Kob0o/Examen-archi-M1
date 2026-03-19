@@ -55,7 +55,7 @@ public class MemberController {
 	}
 
 	/**
-	 * Appelé par le reservation-service pour synchroniser la suspension (quota atteint / libéré).
+	 * Mise à jour manuelle (tests / admin). En production métier, la suspension est pilotée par Kafka.
 	 */
 	@PatchMapping("/{id}/suspended")
 	public Member patchSuspended(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {

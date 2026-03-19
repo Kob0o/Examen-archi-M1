@@ -1,0 +1,8 @@
+# Tests : profil native (fichiers classpath:/config) + pas d'Eureka
+spring:
+  profiles:
+    active: native
+
+eureka:
+  client:
+    enabled: false

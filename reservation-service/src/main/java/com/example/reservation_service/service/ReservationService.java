@@ -1,9 +1,10 @@
 package com.example.reservation_service.service;
 
 import com.example.reservation_service.client.MemberServiceClient;
-import com.example.reservation_service.client.RoomServiceClient;
 import com.example.reservation_service.client.dto.MemberApiDto;
-import com.example.reservation_service.client.dto.RoomApiDto;
+import com.example.reservation_service.builder.ConfirmedReservationBuilderFactory;
+import com.example.reservation_service.messaging.MemberSuspensionKafkaProducer;
+import com.example.reservation_service.messaging.events.MemberSuspensionEvent;
 import com.example.reservation_service.model.Reservation;
 import com.example.reservation_service.model.ReservationStatus;
 import com.example.reservation_service.repository.ReservationRepository;
@@ -12,22 +13,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ReservationService {
 
 	private final ReservationRepository reservationRepository;
-	private final RoomServiceClient roomServiceClient;
 	private final MemberServiceClient memberServiceClient;
+	private final MemberSuspensionKafkaProducer memberSuspensionKafkaProducer;
+	private final ConfirmedReservationBuilderFactory confirmedReservationBuilderFactory;
 
 	public ReservationService(
 			ReservationRepository reservationRepository,
-			RoomServiceClient roomServiceClient,
-			MemberServiceClient memberServiceClient) {
+			MemberServiceClient memberServiceClient,
+			MemberSuspensionKafkaProducer memberSuspensionKafkaProducer,
+			ConfirmedReservationBuilderFactory confirmedReservationBuilderFactory) {
 		this.reservationRepository = reservationRepository;
-		this.roomServiceClient = roomServiceClient;
 		this.memberServiceClient = memberServiceClient;
+		this.memberSuspensionKafkaProducer = memberSuspensionKafkaProducer;
+		this.confirmedReservationBuilderFactory = confirmedReservationBuilderFactory;
 	}
 
 	public List<Reservation> findAll() {
@@ -45,42 +51,35 @@ public class ReservationService {
 	}
 
 	@Transactional
+	public void cancelAllConfirmedForRoom(Long roomId) {
+		List<Reservation> list = reservationRepository.findByRoomIdAndStatus(roomId, ReservationStatus.CONFIRMED);
+		Set<Long> affectedMembers = new HashSet<>();
+		for (Reservation r : list) {
+			r.setStatus(ReservationStatus.CANCELLED);
+			reservationRepository.save(r);
+			affectedMembers.add(r.getMemberId());
+		}
+		for (Long memberId : affectedMembers) {
+			publishSuspensionRecalc(memberId);
+		}
+	}
+
+	@Transactional
+	public void deleteAllForMember(Long memberId) {
+		reservationRepository.deleteByMemberId(memberId);
+	}
+
+	@Transactional
 	public Reservation create(Long roomId, Long memberId, LocalDateTime start, LocalDateTime end) {
-		validateSlot(start, end);
-
-		RoomApiDto room = fetchRoom(roomId);
-		if (!Boolean.TRUE.equals(room.available())) {
-			throw new BadRequestException("La salle n'est pas marquée comme disponible.");
-		}
-		if (!roomServiceClient.isSlotAvailable(roomId, start, end)) {
-			throw new BadRequestException("La salle n'est pas libre sur ce créneau (chevauchement ou indisponibilité).");
-		}
-
-		MemberApiDto member = fetchMember(memberId);
-		if (member.suspended()) {
-			throw new BadRequestException("Le membre est suspendu : libérez une réservation avant de réserver à nouveau.");
-		}
-		Integer max = member.maxConcurrentBookings();
-		if (max == null || max <= 0) {
-			throw new BadRequestException("Quota du membre invalide.");
-		}
-		long active = reservationRepository.countByMemberIdAndStatus(memberId, ReservationStatus.CONFIRMED);
-		if (active >= max) {
-			throw new BadRequestException("Quota de réservations actives atteint pour ce membre.");
-		}
-		if (reservationRepository.existsOverlapForRoom(roomId, start, end, ReservationStatus.CONFIRMED)) {
-			throw new BadRequestException("Une réservation CONFIRMED existe déjà sur ce créneau pour cette salle.");
-		}
-
-		Reservation r = new Reservation();
-		r.setRoomId(roomId);
-		r.setMemberId(memberId);
-		r.setStartDateTime(start);
-		r.setEndDateTime(end);
-		r.setStatus(ReservationStatus.CONFIRMED);
+		Reservation r = confirmedReservationBuilderFactory
+				.newBuilder()
+				.roomId(roomId)
+				.memberId(memberId)
+				.startDateTime(start)
+				.endDateTime(end)
+				.build();
 		r = reservationRepository.save(r);
-
-		syncMemberSuspension(memberId);
+		publishSuspensionRecalc(memberId);
 		return r;
 	}
 
@@ -92,7 +91,7 @@ public class ReservationService {
 		}
 		r.setStatus(ReservationStatus.CANCELLED);
 		reservationRepository.save(r);
-		syncMemberSuspension(r.getMemberId());
+		publishSuspensionRecalc(r.getMemberId());
 		return r;
 	}
 
@@ -104,28 +103,17 @@ public class ReservationService {
 		}
 		r.setStatus(ReservationStatus.COMPLETED);
 		reservationRepository.save(r);
-		syncMemberSuspension(r.getMemberId());
+		publishSuspensionRecalc(r.getMemberId());
 		return r;
 	}
 
-	private void syncMemberSuspension(Long memberId) {
+	private void publishSuspensionRecalc(Long memberId) {
 		MemberApiDto m = fetchMember(memberId);
 		int max = m.maxConcurrentBookings() != null ? m.maxConcurrentBookings() : 0;
 		long active = reservationRepository.countByMemberIdAndStatus(memberId, ReservationStatus.CONFIRMED);
 		boolean shouldSuspend = max > 0 && active >= max;
 		if (m.suspended() != shouldSuspend) {
-			memberServiceClient.updateSuspended(memberId, new MemberServiceClient.SuspendedPatch(shouldSuspend));
-		}
-	}
-
-	private RoomApiDto fetchRoom(Long roomId) {
-		try {
-			return roomServiceClient.getRoom(roomId);
-		} catch (FeignException e) {
-			if (e.status() == 404) {
-				throw new NotFoundException("Salle introuvable: " + roomId);
-			}
-			throw new BadRequestException("Erreur d'appel au room-service: " + e.getMessage());
+			memberSuspensionKafkaProducer.publish(new MemberSuspensionEvent(memberId, shouldSuspend));
 		}
 	}
 

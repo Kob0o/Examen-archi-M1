@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: room-service
+          uri: lb://room-service
+          predicates:
+            - name: Path
+              args:
+                patterns:
+                  - /api/rooms
+                  - /api/rooms/**
+        - id: member-service
+          uri: lb://member-service
+          predicates:
+            - name: Path
+              args:
+                patterns:
+                  - /api/members
+                  - /api/members/**
+        - id: reservation-service
+          uri: lb://reservation-service
+          predicates:
+            - name: Path
+              args:
+                patterns:
+                  - /api/reservations
+                  - /api/reservations/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - gateway

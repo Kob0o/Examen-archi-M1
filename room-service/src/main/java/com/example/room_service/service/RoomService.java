@@ -1,6 +1,7 @@
 package com.example.room_service.service;
 
 import com.example.room_service.client.ReservationConflictClient;
+import com.example.room_service.messaging.RoomDeletedKafkaProducer;
 import com.example.room_service.model.Room;
 import com.example.room_service.repository.RoomRepository;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,15 @@ public class RoomService {
 
 	private final RoomRepository roomRepository;
 	private final ReservationConflictClient reservationConflictClient;
+	private final RoomDeletedKafkaProducer roomDeletedKafkaProducer;
 
-	public RoomService(RoomRepository roomRepository, ReservationConflictClient reservationConflictClient) {
+	public RoomService(
+			RoomRepository roomRepository,
+			ReservationConflictClient reservationConflictClient,
+			RoomDeletedKafkaProducer roomDeletedKafkaProducer) {
 		this.roomRepository = roomRepository;
 		this.reservationConflictClient = reservationConflictClient;
+		this.roomDeletedKafkaProducer = roomDeletedKafkaProducer;
 	}
 
 	public List<Room> findAll() {
@@ -52,6 +58,7 @@ public class RoomService {
 			throw new NotFoundException("Salle introuvable: " + id);
 		}
 		roomRepository.deleteById(id);
+		roomDeletedKafkaProducer.publish(id);
 	}
 
 	/**

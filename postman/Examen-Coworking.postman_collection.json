@@ -1,0 +1,345 @@
+{
+	"info": {
+		"_postman_id": "b7e4f2a1-3c9d-4e8b-a2f1-9d8c7b6a5e40",
+		"name": "Examen Coworking - Gateway et services",
+		"description": "Importer via Postman: File - Import - choisir ce fichier JSON.\n\nVariables: gateway_host, gateway_port (8080), room_id, room_id_2, member_id, reservation_id.\n\nDemarrer: Kafka, Eureka, Config Server, microservices, puis API Gateway.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "gateway_host", "value": "localhost" },
+		{ "key": "gateway_port", "value": "8080" },
+		{ "key": "room_id", "value": "1" },
+		{ "key": "room_id_2", "value": "2" },
+		{ "key": "member_id", "value": "1" },
+		{ "key": "reservation_id", "value": "1" },
+		{ "key": "slot_start", "value": "2026-06-01T09:00:00" },
+		{ "key": "slot_end", "value": "2026-06-01T11:00:00" },
+		{ "key": "slot_start_overlap", "value": "2026-06-01T10:00:00" },
+		{ "key": "slot_end_overlap", "value": "2026-06-01T12:00:00" }
+	],
+	"item": [
+		{
+			"name": "A - Via API Gateway",
+			"item": [
+				{
+					"name": "GET Lister salles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/rooms",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "rooms"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Creer salle Paris",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Atelier Paris Nord\",\n  \"city\": \"Paris\",\n  \"capacity\": 10,\n  \"type\": \"MEETING_ROOM\",\n  \"hourlyRate\": 35.00,\n  \"available\": true\n}"
+						},
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/rooms",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "rooms"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Creer salle Lyon",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Open Space Lyon\",\n  \"city\": \"Lyon\",\n  \"capacity\": 30,\n  \"type\": \"OPEN_SPACE\",\n  \"hourlyRate\": 15.00,\n  \"available\": true\n}"
+						},
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/rooms",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "rooms"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Salle par id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/rooms/{{room_id}}",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "rooms", "{{room_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Creneau disponible",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/rooms/{{room_id}}/slot-available?start={{slot_start}}&end={{slot_end}}",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "rooms", "{{room_id}}", "slot-available"],
+							"query": [
+								{ "key": "start", "value": "{{slot_start}}" },
+								{ "key": "end", "value": "{{slot_end}}" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Lister membres",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/members",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "members"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Creer membre BASIC",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Alice Basic\",\n  \"email\": \"alice.basic@example.com\",\n  \"subscriptionType\": \"BASIC\",\n  \"suspended\": false\n}"
+						},
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/members",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "members"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Membre par id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/members/{{member_id}}",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "members", "{{member_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Lister reservations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/reservations",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Creer reservation",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": {{room_id}},\n  \"memberId\": {{member_id}},\n  \"startDateTime\": \"{{slot_start}}\",\n  \"endDateTime\": \"{{slot_end}}\"\n}"
+						},
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/reservations",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Echec chevauchement meme salle",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": {{room_id}},\n  \"memberId\": {{member_id}},\n  \"startDateTime\": \"{{slot_start_overlap}}\",\n  \"endDateTime\": \"{{slot_end_overlap}}\"\n}"
+						},
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/reservations",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST 2e resa BASIC autre salle meme creneau",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": {{room_id_2}},\n  \"memberId\": {{member_id}},\n  \"startDateTime\": \"{{slot_start}}\",\n  \"endDateTime\": \"{{slot_end}}\"\n}"
+						},
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/reservations",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Annuler reservation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/reservations/{{reservation_id}}/cancel",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "reservations", "{{reservation_id}}", "cancel"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Completer reservation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/reservations/{{reservation_id}}/complete",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "reservations", "{{reservation_id}}", "complete"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Supprimer salle",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/rooms/{{room_id}}",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "rooms", "{{room_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Supprimer membre",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway_host}}:{{gateway_port}}/api/members/{{member_id}}",
+							"protocol": "http",
+							"host": ["{{gateway_host}}"],
+							"port": "{{gateway_port}}",
+							"path": ["api", "members", "{{member_id}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "B - Acces direct microservices (debug)",
+			"item": [
+				{
+					"name": "GET Room service direct 8081",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/rooms",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "rooms"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Member service direct 8082",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/api/members",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8082",
+							"path": ["api", "members"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Reservation service direct 8083",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8083/api/reservations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8083",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

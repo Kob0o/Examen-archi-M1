@@ -3,14 +3,22 @@ package com.example.reservation_service.repository;
 import com.example.reservation_service.model.Reservation;
 import com.example.reservation_service.model.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
 	long countByMemberIdAndStatus(Long memberId, ReservationStatus status);
+
+	List<Reservation> findByRoomIdAndStatus(Long roomId, ReservationStatus status);
+
+	@Modifying
+	@Query("DELETE FROM Reservation r WHERE r.memberId = :memberId")
+	void deleteByMemberId(@Param("memberId") Long memberId);
 
 	@Query("""
 			SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END
